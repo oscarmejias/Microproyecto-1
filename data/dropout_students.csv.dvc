@@ -1,0 +1,5 @@
+outs:
+- md5: 681b8c02c2ee34afe2319db31bf3615b
+  size: 972754
+  hash: md5
+  path: dropout_students.csv
