@@ -1,4 +1,6 @@
 [core]
-    remote = aws-remote
+    remote = storage
 ['remote "aws-remote"']
+    url = s3://dropout-students-dvcstore
+['remote "storage"']
     url = s3://dropout-students-dvcstore
