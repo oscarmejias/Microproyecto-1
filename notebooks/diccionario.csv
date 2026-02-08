@@ -160,7 +160,8 @@ Mother's occupation,The occupation of the student's mother.,Categorical,"1—Stu
 9—Installation and Machine Operators and Assembly Workers
 10—Unskilled Workers
 11—Armed Forces Professions
-12—Other Situation; 13—(blank)
+12—Other Situation
+13—(blank)
 14—Armed Forces Officers
 15—Armed Forces Sergeants
 16—Other Armed Forces personnel
@@ -205,7 +206,8 @@ Father's occupation,The occupation of the student's father. ,Categorical,"1—St
 9—Installation and Machine Operators and Assembly Workers
 10—Unskilled Workers
 11—Armed Forces Professions
-12—Other Situation; 13—(blank)
+12—Other Situation
+13—(blank)
 14—Armed Forces Officers
 15—Armed Forces Sergeants
 16—Other Armed Forces personnel
@@ -264,6 +266,6 @@ Curricular units 2nd sem (enrolled),The number of curricular units enrolled by t
 Curricular units 2nd sem (evaluations),The number of curricular units evaluated by the student in the second semester. ,Numerical,
 Curricular units 2nd sem (approved),The number of curricular units approved by the student in the second semester. ,Numerical,
 Curricular units 2nd sem (without evaluations),The number of curricular units without evaluations by the student in the second semester. ,Numerical,
-Unemployment rate,,Numerical,
-Inflation rate,,Numerical,
-GDP,,Numerical,
+Unemployment rate,Unemployment rate,Numerical,
+Inflation rate,Inflation rate,Numerical,
+GDP,Gross Domestic Product,Numerical,
