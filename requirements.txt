@@ -1,0 +1,25 @@
+# Manipulación de datos y preprocesamiento
+pandas
+numpy
+
+# Modelado y balanceo de clases
+scikit-learn
+xgboost
+imbalanced-learn
+
+# Tracking de experimentos y versionado
+mlflow
+dvc
+
+# Visualización para evaluación de modelos
+matplotlib
+seaborn
+
+# API y despliegue (Para el Frontend/Backend)
+fastapi
+uvicorn
+pydantic
+
+# Herramientas de desarrollo local
+ipykernel
+tqdm
