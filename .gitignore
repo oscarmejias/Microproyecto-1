@@ -1,16 +1,21 @@
+# Documentación (Ignora todos los .md excepto los README)
 *.md
 !README.md
 !readme.md
 
-data/*.csv
+# Datos (DVC se encarga de versionarlos, Git no debe tocarlos)
+*.csv
+*.parquet
 
+# Archivos de macOS
 .DS_Store
 
+# Configuraciones de IDEs
 .cursor/
 .vscode/
 .idea/
 
-# Conda/local envs created for this project
+# Entornos virtuales de Python (Conda y venv)
 .conda/
 .conda-env/
 env/
@@ -18,3 +23,14 @@ env/
 venv/
 .venv/
 conda-lock.yml
+
+# Caché de Python
+__pycache__/
+*.pyc
+
+# Archivos de Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Archivos de MLflow
+mlruns/
+*.db
