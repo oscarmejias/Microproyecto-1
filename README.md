@@ -45,6 +45,8 @@ El prototipo funcional se divide en dos módulos estratégicos:
 - **Panel General:** Visualización macro de la cohorte con indicadores de riesgo agregado y tendencias por semestre.
 - **Evaluación Individual:** Análisis detallado por estudiante que incluye probabilidad de deserción, factores de riesgo específicos y recomendaciones de intervención.
 
+Se puede acceder a las imágenes del prototipo así como a un reporte más detallado del proyecto en este enlace: https://docs.google.com/document/d/1FEfJdqrMyvkhoj2cEnjXqCtpBJSAuf2_6T3xhclMGJs/edit?tab=t.0 
+
 ## 👥 Integrantes
 - Manuel Estévez-Bretón Ruiz
 - Jorge Paternina Montiel
