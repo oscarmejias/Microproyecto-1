@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 224 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 20% 15%;
+
+    --primary: 210 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 20% 96%;
+    --secondary-foreground: 224 20% 15%;
+
+    --muted: 240 10% 95%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 210 70% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 210 70% 50%;
+
+    --radius: 0.5rem;
+
+    /* Risk system colors */
+    --risk-high: 0 72% 56%;
+    --risk-medium: 38 90% 55%;
+    --risk-low: 152 60% 45%;
+    --risk-high-bg: 0 72% 96%;
+    --risk-medium-bg: 38 90% 95%;
+    --risk-low-bg: 152 60% 95%;
+
+    /* Chart colors */
+    --chart-1: 152 60% 45%;
+    --chart-2: 0 72% 56%;
+    --chart-3: 42 85% 55%;
+    --chart-4: 210 70% 50%;
+    --chart-5: 200 70% 50%;
+
+    /* Sidebar - deep slate blue */
+    --sidebar-background: 215 28% 17%;
+    --sidebar-foreground: 215 20% 75%;
+    --sidebar-primary: 210 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 70% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 25% 25%;
+    --sidebar-ring: 210 70% 50%;
+
+    /* Shadow tokens */
+    --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 4px 12px -2px rgba(0,0,0,0.08);
+  }
+
+  .dark {
+    --background: 224 25% 8%;
+    --foreground: 220 20% 92%;
+    --card: 224 25% 12%;
+    --card-foreground: 220 20% 92%;
+    --popover: 224 25% 12%;
+    --popover-foreground: 220 20% 92%;
+    --primary: 210 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 224 20% 18%;
+    --secondary-foreground: 220 20% 85%;
+    --muted: 224 20% 18%;
+    --muted-foreground: 220 12% 55%;
+    --accent: 210 70% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 224 20% 20%;
+    --input: 224 20% 20%;
+    --ring: 210 70% 55%;
+    --sidebar-background: 215 28% 12%;
+    --sidebar-foreground: 215 20% 75%;
+    --sidebar-primary: 210 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 70% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 25% 18%;
+    --sidebar-ring: 210 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-xl p-5 border border-border transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .stat-card:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .risk-badge-alto {
+    @apply text-xs font-semibold px-2.5 py-0.5 rounded-full;
+    background: hsl(var(--risk-high-bg));
+    color: hsl(var(--risk-high));
+  }
+
+  .risk-badge-medio {
+    @apply text-xs font-semibold px-2.5 py-0.5 rounded-full;
+    background: hsl(var(--risk-medium-bg));
+    color: hsl(var(--risk-medium));
+  }
+
+  .risk-badge-bajo {
+    @apply text-xs font-semibold px-2.5 py-0.5 rounded-full;
+    background: hsl(var(--risk-low-bg));
+    color: hsl(var(--risk-low));
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}

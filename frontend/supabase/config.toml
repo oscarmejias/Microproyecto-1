@@ -1,0 +1,7 @@
+project_id = "whvujuimweurnsmkojwi"
+
+[functions.predict-proxy]
+verify_jwt = false
+
+[functions.predict-csv-proxy]
+verify_jwt = false

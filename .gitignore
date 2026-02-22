@@ -35,3 +35,16 @@ __pycache__/
 mlruns/
 *.db
 /prod_model
+
+# Frontend (Node / Vite / Supabase)
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/.vite/
+frontend/.eslintcache
+.env
+.env.local
+.env.*.local
+*.log
+frontend/supabase/.branches
+frontend/supabase/.temp
