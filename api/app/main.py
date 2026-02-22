@@ -43,7 +43,7 @@ app.include_router(root_router)
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -56,4 +56,4 @@ if __name__ == "__main__":
     import uvicorn
 
     # ejecución del servidor - host para ejecutar en servidor 
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="debug")
+    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="debug")
