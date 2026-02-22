@@ -15,7 +15,7 @@ RUN pip install -r /opt/dropout-api/requirements.txt \
 # Copia metadata DVC y punteros
 COPY .dvc /opt/dropout-api/.dvc
 
-RUN dvc pull /opt/dropout-api/prod_model.dvc
+RUN dvc pull /opt/dropout-api/model.dvc
 
 RUN pip install -r /opt/dropout-api/api/app/modelrequirements.txt 
 
