@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 
 # Crear usuario que ejecuta la app
 RUN adduser --disabled-password --gecos '' api-user
@@ -11,13 +11,6 @@ ADD ./api /opt/dropout-api/
 RUN pip install --upgrade pip
 RUN pip install -r /opt/dropout-api/requirements.txt \
     && pip install "dvc[s3]"
-
-# Copia metadata DVC y punteros
-COPY .dvc /opt/dropout-api/.dvc
-
-RUN dvc pull /opt/dropout-api/model.dvc
-
-RUN pip install -r /opt/dropout-api/api/app/modelrequirements.txt 
 
 # Hacer el directorio de trabajo ejecutable 
 RUN chmod +x /opt/dropout-api/run.sh
