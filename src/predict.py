@@ -1,15 +1,51 @@
 import pandas as pd
+import mlflow
 import mlflow.xgboost
 import mlflow.sklearn
-from src.config import MLFLOW_TRACKING_URI
+from src.config import MLFLOW_TRACKING_URI, MLFLOW_EXPERIMENT_NAME
 
-# Usaremos un modelo por defecto para la carga. Dejamps como default XGBoost
-MODEL_PATH = "mlruns/0/.../artifacts/modelo_final" 
+def get_best_model():
+    """
+    Busca dinámicamente en MLflow el modelo con el mejor AUC,
+    identifica su tipo (XGBoost o Random Forest) y lo carga.
+    """
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    
+    # 1. Obtener el ID del experimento
+    experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
+    if not experiment:
+        raise ValueError(f"No se encontró el experimento: {MLFLOW_EXPERIMENT_NAME}")
+        
+    # 2. Buscar y ordenar los runs por AUC descendente
+    runs = mlflow.search_runs(
+        experiment_ids=[experiment.experiment_id],
+        order_by=["metrics.auc_score DESC"],
+        max_results=1 # Solo nos interesa el #1
+    )
+    
+    if runs.empty:
+        raise ValueError("No hay modelos entrenados en este experimento.")
+        
+    # 3. Extraer metadata del mejor run
+    best_run = runs.iloc[0]
+    run_id = best_run.run_id
+    run_name = best_run["tags.mlflow.runName"] 
+    best_auc = best_run["metrics.auc_score"]
+    
+    model_uri = f"runs:/{run_id}/modelo_final"
+    
+    # 4. Cargar dinámicamente según el sabor del modelo
+    print(f"Cargando el mejor modelo: {run_name} (AUC: {best_auc:.4f})")
+    
+    if "XGB" in run_name:
+        model = mlflow.xgboost.load_model(model_uri)
+        model_version = "xgboost"
+    else:
+        model = mlflow.sklearn.load_model(model_uri)
+        model_version = "random_forest"
+        
+    return model, model_version, run_id
 
-def load_model(path=MODEL_PATH, model_type="xgboost"):
-    if model_type == "xgboost":
-        return mlflow.xgboost.load_model(path)
-    return mlflow.sklearn.load_model(path)
 
 def generate_intervention_logic(student_df, risk_score):
     """
@@ -27,13 +63,13 @@ def generate_intervention_logic(student_df, risk_score):
     risk_level = "Bajo"
 
     # Lógica 1: Riesgo Financiero
-    if row['Tuition_fees_up_to_date'] == 0 or row['Debtor'] == 1:
+    if row['tuition_fees_up_to_date'] == 0 or row['debtor'] == 1:
         risk_level = "Alto"
         recommendation = "RIESGO FINANCIERO DETECTADO: El estudiante presenta deudas que bloquean su permanencia."
         steps = ["1. Verificar estado de pagos.", "2. Informar fecha límite.", "3. Remitir a Oficina de Becas."]
         features_impact.append({
-            "feature": "Tuition_fees_up_to_date / Debtor",
-            "value": int(row['Tuition_fees_up_to_date']),
+            "feature": "tuition_fees_up_to_date / debtor",
+            "value": int(row['tuition_fees_up_to_date']),
             "impact": "Crítico: El estudiante presenta deudas que bloquean su permanencia."
         })
 
@@ -60,14 +96,14 @@ def generate_intervention_logic(student_df, risk_score):
         })
 
     # Lógica 4: Socioeconómico
-    elif row['Scholarship_holder'] == 0 and risk_score > 0.4:
-        if risk_level == "Bajo": # Solo sobreescribe si no hay un riesgo mayor previo
+    elif row['scholarship_holder'] == 0 and risk_score > 0.4:
+        if risk_level == "Bajo": 
             risk_level = "Medio"
             recommendation = "RIESGO POR FALTA DE APOYO: Estudiante vulnerable sin subsidio institucional."
             steps = ["1. Validar requisitos para becas.", "2. Asignar 'Mentor Par'.", "3. Evaluar flexibilidad de horario."]
         features_impact.append({
-            "feature": "Scholarship_holder",
-            "value": int(row['Scholarship_holder']),
+            "feature": "scholarship_holder",
+            "value": int(row['scholarship_holder']),
             "impact": "Soporte: Ausencia de beca combinada con probabilidad de riesgo elevada."
         })
 
@@ -80,7 +116,7 @@ def predict_student_risk(student_data: dict, model):
     """
     df = pd.DataFrame([student_data])
 
-    # Ingeniería de Variables (Debe ser idéntica al entrenamiento)
+    # Ingeniería de Variables
     df['total_approved'] = df['curricular_units_1st_sem_approved'] + df['curricular_units_2nd_sem_approved']
     df['total_enrolled'] = df['curricular_units_1st_sem_enrolled'] + df['curricular_units_2nd_sem_enrolled']
     df['efficiency_ratio'] = df['total_approved'] / (df['total_enrolled'] + 1e-5)
@@ -93,7 +129,7 @@ def predict_student_risk(student_data: dict, model):
     # Aplicar Lógica de Negocio
     risk_level, recommendation, steps, features_impact = generate_intervention_logic(df, risk_score)
 
-    # Estructuramos la respuesta principal de la predicción
+    # Respuesta estructurada
     prediction_result = {
         "outcome": "Dropout" if risk_score > 0.5 else "Graduate",
         "risk_score": round(risk_score, 2),
@@ -108,3 +144,44 @@ def predict_student_risk(student_data: dict, model):
     }
     
     return prediction_result
+
+
+# ==========================================
+# BLOQUE DE PRUEBA LOCAL
+# ==========================================
+if __name__ == "__main__":
+    import json
+
+    print("Buscando el mejor modelo en MLflow...")
+    modelo_cargado, tipo_modelo, run_id = get_best_model()
+
+    # Data dummy 
+    dummy_request = {
+        "student_info": {
+            "student_id": "ST-2024-001"
+        },
+        "academic_context": {
+            "semester": 4,
+            "batch_id": "2026-01-MAIA"
+        },
+        "features": {
+            "age_at_enrollment": 19,
+            "gender": 1,
+            "displaced": 0,
+            "debtor": 0,
+            "tuition_fees_up_to_date": 1,
+            "scholarship_holder": 1,
+            "curricular_units_1st_sem_enrolled": 6,
+            "curricular_units_1st_sem_approved": 6,
+            "curricular_units_1st_sem_grade": 14.5,
+            "curricular_units_2nd_sem_enrolled": 6,
+            "curricular_units_2nd_sem_approved": 6,
+            "curricular_units_2nd_sem_grade": 15.0
+        }
+    }
+
+    print("Generando predicción...\n")
+    resultado = predict_student_risk(dummy_request["features"], modelo_cargado)
+    
+    print("--- RESPUESTA DE INFERENCIA GENERADA ---")
+    print(json.dumps(resultado, indent=2, ensure_ascii=False))

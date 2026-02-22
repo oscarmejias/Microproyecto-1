@@ -22,6 +22,21 @@ COLS_TO_DROP = [
     'Unemployment_rate', 'Inflation_rate', 'GDP'
 ]
 
+API_FEATURES = [
+    "age_at_enrollment", 
+    "gender", 
+    "displaced", 
+    "debtor",
+    "tuition_fees_up_to_date", 
+    "scholarship_holder",
+    "curricular_units_1st_sem_enrolled", 
+    "curricular_units_1st_sem_approved",
+    "curricular_units_1st_sem_grade", 
+    "curricular_units_2nd_sem_enrolled",
+    "curricular_units_2nd_sem_approved", 
+    "curricular_units_2nd_sem_grade"
+]
+
 # Configuraciones de Modelos
 
 # XGBoost
