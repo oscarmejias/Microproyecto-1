@@ -6,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / "data" / "dropout_students.csv"
 
 # MLflow
-MLFLOW_TRACKING_URI = str(BASE_DIR / "mlruns")
-MLFLOW_EXPERIMENT_NAME = "retencion_estudiantil_binary"
+MLFLOW_TRACKING_URI = "http://localhost:8001"
+MLFLOW_EXPERIMENT_NAME = "students-dropout"
 
 # Target (0: Éxito, 1: Riesgo)
 TARGET_COL = "Target"
