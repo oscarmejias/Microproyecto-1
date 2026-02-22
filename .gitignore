@@ -34,3 +34,4 @@ __pycache__/
 # Archivos de MLflow
 mlruns/
 *.db
+/prod_model
