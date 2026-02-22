@@ -25,7 +25,7 @@ def index(request: Request) -> Any:
     body = (
         "<html>"
         "<body style='padding: 10px;'>"
-        "<h1>Welcome to the Bankchurn API by Ling Lung</h1>"
+        "<h1>Welcome to the Dropout Students API</h1>"
         "<div>"
         "Check the docs: <a href='/docs'>here</a>"
         "</div>"
@@ -56,4 +56,4 @@ if __name__ == "__main__":
     import uvicorn
 
     # ejecución del servidor - host para ejecutar en servidor 
-    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="debug")
+    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="debug")

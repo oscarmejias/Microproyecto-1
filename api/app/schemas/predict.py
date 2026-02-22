@@ -1,43 +1,125 @@
-from typing import Any, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
-from model.processing.validation import DataInputSchema
+from .request import PredictionRequest
 
-# Esquema de los resultados de predicción
+
+class PredictionDetail(BaseModel):
+    """Detalle de riesgo aplicado según reglas de negocio."""
+
+    student_id: Optional[str] = None
+    categoria: str
+    risk_level: str
+    outcome: Optional[str] = None
+    risk_score: Optional[float] = None
+    class_probabilities: Optional[Dict[str, float]] = None
+    recommendation: str
+    intervention_steps: str
+
+
+class PredictionMetadata(BaseModel):
+    model_version: str
+    api_version: str
+    timestamp: str
+
+
+# Esquema de los resultados de predicción (respuesta batch/legacy)
 class PredictionResults(BaseModel):
-    errors: Optional[Any]
+    errors: Optional[Any] = None
     version: str
-    predictions: Optional[List[float]]
+    predictions: Optional[List[Any]] = None
+    prediction: Optional[List[PredictionDetail]] = None
+    metadata: Optional[PredictionMetadata] = None
 
-# Esquema para inputs múltiples
-class MultipleDataInputs(BaseModel):
-    inputs: List[DataInputSchema]
+    @classmethod
+    def from_inference(
+        cls,
+        input_df: Any,
+        raw_results: Dict[str, Any],
+        student_ids: Optional[List[Optional[str]]] = None,
+        api_version: str = "",
+    ) -> "PredictionResults":
+        """
+        Construye PredictionResults a partir del resultado crudo del modelo,
+        añadiendo los campos calculados (risk_details) según las reglas de negocio.
+        """
+        from app.utils.risk_rules import build_risk_details_dicts
+
+        predictions = raw_results.get("predictions") or []
+        risk_dicts = build_risk_details_dicts(input_df, predictions)
+        if student_ids:
+            for i, detail in enumerate(risk_dicts):
+                detail["student_id"] = student_ids[i] if i < len(student_ids) else None
+        risk_details = [PredictionDetail(**d) for d in risk_dicts]
+        model_version = raw_results.get("version", "")
+        timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds").replace(
+            "+00:00",
+            "Z",
+        )
+
+        return cls(
+            errors=raw_results.get("errors"),
+            version=model_version,
+            predictions=predictions,
+            prediction=risk_details,
+            metadata=PredictionMetadata(
+                model_version=model_version,
+                api_version=api_version,
+                timestamp=timestamp,
+            ),
+        )
+
+
+class StudentFeaturesMultiple(BaseModel):
+    """Payload batch basado en StudentFeatures."""
+
+    inputs: List[PredictionRequest]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "inputs": [
                     {
-                        "Customer_Age": 57,
-                        "Gender": "M",
-                        "Dependent_count": 4,
-                        "Education_Level": "Graduate",
-                        "Marital_Status": "Single",
-                        "Income_Category": "$120K +",
-                        "Card_Category": "Blue",
-                        "Months_on_book":52,
-                        "Total_Relationship_Count":2,
-                        "Months_Inactive_12_mon":3,
-                        "Contacts_Count_12_mon":2,
-                        "Credit_Limit":25808,
-                        "Total_Revolving_Bal":0,
-                        "Avg_Open_To_Buy":25808,
-                        "Total_Amt_Chng_Q4_Q1":0.712,
-                        "Total_Trans_Amt":7794,
-                        "Total_Trans_Ct":94,
-                        "Total_Ct_Chng_Q4_Q1":0.843,
-                        "Avg_Utilization_Ratio": 0
+                        "student_info": {
+                            "student_id": "ST-2024-001",
+                            "name": "John Doe"
+                        },
+                        "academic_context": {
+                            "semester": 4,
+                            "batch_id": "2026-01-MAIA",
+                            "course": "Computer Science"
+                        },
+                        "features": {
+                            "age_at_enrollment": 19,
+                            "gender": 1,
+                            "displaced": 0,
+                            "debtor": 0,
+                            "tuition_fees_up_to_date": 1,
+                            "scholarship_holder": 1,
+                            "curricular_units_1st_sem_enrolled": 6,
+                            "curricular_units_1st_sem_approved": 6,
+                            "curricular_units_1st_sem_grade": 14.5,
+                            "curricular_units_2nd_sem_enrolled": 6,
+                            "curricular_units_2nd_sem_approved": 6,
+                            "curricular_units_2nd_sem_grade": 15.0,
+                        }
                     }
                 ]
             }
         }
+
+    def to_feature_rows(self) -> List[Dict[str, Any]]:
+        """Aplana el payload y retorna solo el bloque `features` por input."""
+        rows: List[Dict[str, Any]] = []
+        for item in self.inputs:
+            if hasattr(item.features, "model_dump"):  # pydantic v2
+                rows.append(item.features.model_dump())
+            else:  # pydantic v1
+                rows.append(item.features.dict())
+        return rows
+
+
+# Compatibilidad con contrato anterior (si otros módulos lo importan)
+class MultipleDataInputs(BaseModel):
+    inputs: List[Dict[str, Any]]

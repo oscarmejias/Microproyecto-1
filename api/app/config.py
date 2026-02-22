@@ -4,11 +4,13 @@ from types import FrameType
 from typing import List, cast
 
 from loguru import logger
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Nivel del logger
 class LoggingSettings(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO  # logging levels are type int
+    model_config = SettingsConfigDict(case_sensitive=True)
 
 # Configuración de raíz de la ruta, logger, CORS, nombre 
 class Settings(BaseSettings):
@@ -26,10 +28,8 @@ class Settings(BaseSettings):
         "https://localhost:8000",  # type: ignore
     ]
 
-    PROJECT_NAME: str = "Banckchurn API"
-
-    class Config:
-        case_sensitive = True
+    PROJECT_NAME: str = "Dropout Students API"
+    model_config = SettingsConfigDict(case_sensitive=True)
 
 # Intercepción de mensajes de loggers 
 # See: https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging  
