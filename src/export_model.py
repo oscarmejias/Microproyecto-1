@@ -27,7 +27,7 @@ def export_best_model_for_api():
     print(f"\nDescargando artefactos desde MLflow ({artifact_uri}) hacia '{target_dir}/'...")
     
     # MLflow se encarga de buscar la ruta real y copiar los archivos
-    mlflow.artifacts.download_artifacts(artifact_uri=artifact_uri, dst_path=target_dir)
+    mlflow.artifacts.download_artifacts(run_id=run_id, dst_path=target_dir)
     
     print(f"Modelo '{model_version}' (Run ID: {run_id}) exportado.")
 
