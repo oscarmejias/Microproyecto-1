@@ -1,60 +1,59 @@
 import mlflow
 import mlflow.xgboost
+import json
 from xgboost import XGBClassifier
-from sklearn.metrics import classification_report, accuracy_score, recall_score, f1_score
-from src.config import XGB_BASE_PARAMS, MLFLOW_EXPERIMENT_NAME
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score, recall_score, f1_score, roc_auc_score
+from sklearn.utils.class_weight import compute_sample_weight
+from src.config import XGB_BASE_PARAMS, XGB_PARAM_GRID, MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
 from src.data_processor import load_and_prep_data, get_train_test_split
+from src.feature_importance import save_feature_importance_artifacts 
 
-def train_and_evaluate(balance_classes=False):
-    """
-    Entrena el modelo XGBoost y registra los resultados en MLflow.
-    """
-    # Configurar MLflow
+def train_best_binary_model():
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-    
-    # Nombre de la ejecución
-    run_name = "XGBoost_con_SMOTE" if balance_classes else "XGBoost_Base"
-    
-    with mlflow.start_run(run_name=run_name):
-        print(f"\nIniciando experimento: {run_name}")
-        
-        # Cargar y preparar datos
+
+    with mlflow.start_run(run_name="XGB_Binary_Optimization"):
+        # 1. Datos
         X, y = load_and_prep_data()
-        X_train, X_test, y_train, y_test = get_train_test_split(
-            X, y, balance_classes=balance_classes
-        )
+        X_train, X_test, y_train, y_test = get_train_test_split(X, y)
         
-        # Entrenar el modelo
-        print("Entrenando XGBoost...")
-        model = XGBClassifier(**XGB_BASE_PARAMS)
-        model.fit(X_train, y_train)
+        # 2. Pesos de clase para manejar el desbalance
+        weights = compute_sample_weight(class_weight='balanced', y=y_train)
         
-        # Predicciones
-        y_pred = model.predict(X_test)
+        # 3. Grid Search
+        print("Buscando hiperparámetros óptimos en modo BINARIO...")
+        xgb = XGBClassifier(**XGB_BASE_PARAMS)
+        grid = GridSearchCV(xgb, XGB_PARAM_GRID, cv=3, scoring='f1', n_jobs=-1)
+        grid.fit(X_train, y_train, sample_weight=weights)
         
-        # Calcular métricas de Recall y F1-score para cada clase
-        acc = accuracy_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred, average='macro')
-        f1 = f1_score(y_test, y_pred, average='macro')
+        best_model = grid.best_estimator_
         
-        print(f"Accuracy: {acc:.4f}")
-        print(f"Macro Recall: {recall:.4f}")
-        print(f"Macro F1-Score: {f1:.4f}")
+        # 4. Evaluación
+        y_pred = best_model.predict(X_test)
+        f1 = f1_score(y_test, y_pred)
+        auc = roc_auc_score(y_test, best_model.predict_proba(X_test)[:, 1])
         
-        # Registrar en MLflow
-        # Guardamos los parámetros, las métricas y el modelo empaquetado
-        mlflow.log_params(XGB_BASE_PARAMS)
-        mlflow.log_param("balanced_classes", balance_classes)
-        mlflow.log_metric("accuracy", acc)
-        mlflow.log_metric("recall_macro", recall)
-        mlflow.log_metric("f1_macro", f1)
+        print(f"--- RESULTADOS ---")
+        print(f"F1-Score: {f1:.4f}")
+        print(f"AUC (Riesgo): {auc:.4f}")
+
+        # 5. MLflow Logs
+        mlflow.log_params(grid.best_params_)
+        mlflow.log_metric("f1_score", f1)
+        mlflow.log_metric("auc_score", auc)
+        mlflow.xgboost.log_model(best_model, "modelo_final_binario")
         
-        # Guardamos el modelo con su firma (input/output) para el API
-        mlflow.xgboost.log_model(model, "modelo_xgboost")
+        # 6. Artefactos para el Frontend
+        json_path, img_path = save_feature_importance_artifacts(best_model, X.columns)
+        mlflow.log_artifact(json_path)
+        mlflow.log_artifact(img_path)
         
-        print("Experimento registrado exitosamente en MLflow")
+        with open(json_path, 'r') as f:
+            top_3 = json.load(f)[:3]
+            print("\nTOP 3 PREDICTORES DE DESERCIÓN:")
+            for i, item in enumerate(top_3):
+                print(f"{i+1}. {item['feature']} ({item['importance']:.4f})")
 
 if __name__ == "__main__":
-    # Al ejecutar este script, correremos ambos experimentos de una vez
-    train_and_evaluate(balance_classes=False)
-    train_and_evaluate(balance_classes=True)
+    train_best_binary_model()
