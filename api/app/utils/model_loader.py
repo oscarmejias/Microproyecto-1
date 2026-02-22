@@ -51,9 +51,9 @@ def _ensure_exported_model_files() -> None:
 @lru_cache(maxsize=1)
 def _load_model() -> Any:
     _ensure_exported_model_files()
-    import mlflow.xgboost
+    import mlflow.pyfunc
 
-    return mlflow.xgboost.load_model(str(MODEL_DIR))
+    return mlflow.pyfunc.load_model(str(MODEL_DIR))
 
 
 def make_prediction(input_data: pd.DataFrame) -> Dict[str, Any]:
