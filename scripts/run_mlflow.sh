@@ -27,7 +27,7 @@ fi
 
 mkdir -p /tmp/mlflow_artifacts
 
-MLFLOW_CMD="mlflow server -h ${MLFLOW_HOST} -p ${MLFLOW_PORT} --allowed-hosts \"${MLFLOW_ALLOWED_HOSTS}\" --cors-allowed-origins \"${MLFLOW_CORS_ORIGINS}\" --backend-store-uri ${MLFLOW_BACKEND_STORE_URI} --default-artifact-root s3://microproyecto-grupo12/mp-grupo12-mlflow"
+MLFLOW_CMD="mlflow server -h ${MLFLOW_HOST} -p ${MLFLOW_PORT} --allowed-hosts \"${MLFLOW_ALLOWED_HOSTS}\" --cors-allowed-origins \"${MLFLOW_CORS_ORIGINS}\" --backend-store-uri ${MLFLOW_BACKEND_STORE_URI} --default-artifact-root ${MLFLOW_ARTIFACT_ROOT}"
 
 echo "Starting MLflow with command:"
 echo "  $MLFLOW_CMD"
