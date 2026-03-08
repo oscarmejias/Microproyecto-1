@@ -9,12 +9,25 @@ if [[ -d ".venv" ]]; then
   source ".venv/bin/activate"
 fi
 
-echo "Installing/updating mlflow..."
-python -m pip install --upgrade mlflow
+MLFLOW_VERSION="${MLFLOW_VERSION:-3.10.1}"
+MLFLOW_HOST="${MLFLOW_HOST:-0.0.0.0}"
+MLFLOW_PORT="${MLFLOW_PORT:-8050}"
+MLFLOW_ALLOWED_HOSTS="${MLFLOW_ALLOWED_HOSTS:-localhost:8050,50.19.63.113:8050}"
+MLFLOW_CORS_ORIGINS="${MLFLOW_CORS_ORIGINS:-http://localhost:3000,http://50.19.63.113:3000}"
+MLFLOW_BACKEND_STORE_URI="${MLFLOW_BACKEND_STORE_URI:-sqlite:////tmp/mlflow.db}"
+MLFLOW_ARTIFACT_ROOT="${MLFLOW_ARTIFACT_ROOT:-file:/tmp/mlflow_artifacts}"
+
+if ! command -v mlflow >/dev/null 2>&1; then
+  echo "Installing mlflow==${MLFLOW_VERSION}..."
+  python -m pip install "mlflow==${MLFLOW_VERSION}"
+else
+  echo "mlflow already installed; keeping current version."
+  mlflow --version
+fi
 
 mkdir -p /tmp/mlflow_artifacts
 
-MLFLOW_CMD='mlflow server -h 0.0.0.0 -p 8050 --allowed-hosts "localhost:8050,50.19.63.113:8050" --backend-store-uri sqlite:////tmp/mlflow.db --default-artifact-root file:/tmp/mlflow_artifacts'
+MLFLOW_CMD="mlflow server -h ${MLFLOW_HOST} -p ${MLFLOW_PORT} --allowed-hosts \"${MLFLOW_ALLOWED_HOSTS}\" --cors-allowed-origins \"${MLFLOW_CORS_ORIGINS}\" --backend-store-uri ${MLFLOW_BACKEND_STORE_URI} --default-artifact-root ${MLFLOW_ARTIFACT_ROOT}"
 
 echo "Starting MLflow with command:"
 echo "  $MLFLOW_CMD"
