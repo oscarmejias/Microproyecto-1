@@ -37,7 +37,7 @@ def get_best_model():
     # 4. Cargar dinámicamente según el sabor del modelo
     print(f"Cargando el mejor modelo: {run_name} (AUC: {best_auc:.4f})")
     
-    if "XGB" in run_name:
+    if "xgboost" in run_name.lower():
         model = mlflow.xgboost.load_model(model_uri)
         model_version = "xgboost"
     else:
