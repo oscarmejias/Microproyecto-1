@@ -4,10 +4,13 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-if [[ -d ".venv" ]]; then
-  # shellcheck disable=SC1091
-  source ".venv/bin/activate"
+if [[ ! -d ".venv" ]]; then
+  echo "Creating virtual environment at .venv..."
+  python3 -m venv .venv
 fi
+
+# shellcheck disable=SC1091
+source ".venv/bin/activate"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -18,7 +21,7 @@ require_cmd() {
 
 require_cmd python
 
-echo "[1/9] Installing packaging requirements from pyproject.toml..."
+echo "[1/10] Installing packaging requirements from pyproject.toml..."
 python -m pip install --upgrade pip
 python - <<'PY'
 import pathlib
@@ -40,17 +43,27 @@ subprocess.check_call(
 )
 PY
 
-echo "[2/9] Installing runtime requirements from requirements.txt..."
+echo "[2/10] Installing runtime requirements from requirements.txt..."
 if [[ ! -f "requirements.txt" ]]; then
   echo "ERROR: requirements.txt not found" >&2
   exit 1
 fi
 python -m pip install -r requirements.txt
 
-echo "[3/9] Training models..."
+if ! command -v dvc >/dev/null 2>&1; then
+  echo "dvc not found. Installing dvc[s3]..."
+  python -m pip install "dvc[s3]"
+fi
+
+require_cmd dvc
+
+echo "[3/10] Pulling tracked data/artifacts with DVC..."
+dvc pull
+
+echo "[4/10] Training models..."
 python -m src.train
 
-echo "[4/9] Exporting best model to prod_model/..."
+echo "[5/10] Exporting best model to prod_model/..."
 python -m src.export_model
 
 if [[ ! -f "prod_model/MLmodel" ]] || [[ ! -f "prod_model/model.ubj" ]]; then
@@ -65,12 +78,12 @@ WHEEL_STABLE_PATH="artifacts/wheels/${WHEEL_PACKAGE_NAME}.whl"
 WHEEL_DVC_PATH="${WHEEL_STABLE_PATH}.dvc"
 WHEEL_MODEL_DIR="${WHEEL_PACKAGE_NAME}/model"
 
-echo "[5/9] Preparing wheel source tree..."
+echo "[6/10] Preparing wheel source tree..."
 rm -rf "$WHEEL_MODEL_DIR"
 mkdir -p "$WHEEL_MODEL_DIR" "$WHEEL_OUT_DIR"
 cp -R prod_model/. "$WHEEL_MODEL_DIR/"
 
-echo "[6/9] Building wheel..."
+echo "[7/10] Building wheel..."
 WHEEL_VERSION="$WHEEL_VERSION" python -m build --wheel --outdir "$WHEEL_OUT_DIR" .
 
 BUILT_WHEEL="$(python - <<'PY'
@@ -87,14 +100,14 @@ cp "$BUILT_WHEEL" "$WHEEL_STABLE_PATH"
 echo "Built wheel: $BUILT_WHEEL"
 echo "Stable wheel: $WHEEL_STABLE_PATH"
 
-echo "[7/9] Versioning with DVC..."
+echo "[8/10] Versioning with DVC..."
 dvc add prod_model
 dvc add "$WHEEL_STABLE_PATH"
 
-echo "[8/9] Pushing DVC artifacts to remote..."
+echo "[9/10] Pushing DVC artifacts to remote..."
 dvc push
 
-echo "[9/9] Done."
+echo "[10/10] Done."
 echo "Tracked artifacts:"
 echo " - prod_model (prod_model.dvc)"
 echo " - wheel ($WHEEL_DVC_PATH)"

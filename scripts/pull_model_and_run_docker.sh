@@ -22,6 +22,8 @@ require_cmd docker
 
 WHEEL_PATH="${WHEEL_PATH:-artifacts/wheels/dropout_model_artifact.whl}"
 WHEEL_DVC_PATH="${WHEEL_DVC_PATH:-${WHEEL_PATH}.dvc}"
+API_WHEEL_DIR="${API_WHEEL_DIR:-api/wheels}"
+API_WHEEL_PATH="${API_WHEEL_PATH:-${API_WHEEL_DIR}/dropout_model_artifact.whl}"
 MODEL_TARGET_DIR="${MODEL_TARGET_DIR:-api/app/model}"
 IMAGE_NAME="${IMAGE_NAME:-dropout-api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-dropout-api}"
@@ -40,7 +42,11 @@ echo "[2/6] Installing wheel locally..."
 python -m pip install --upgrade pip
 python -m pip install --force-reinstall "$WHEEL_PATH"
 
-echo "[3/6] Rebuilding api/app/model from installed wheel..."
+echo "[3/6] Syncing wheel into API build context..."
+mkdir -p "$API_WHEEL_DIR"
+cp "$WHEEL_PATH" "$API_WHEEL_PATH"
+
+echo "[4/6] Rebuilding api/app/model from installed wheel..."
 MODEL_TARGET_DIR="$MODEL_TARGET_DIR" python - <<'PY'
 import os
 import shutil
@@ -67,15 +73,14 @@ if [[ ! -f "${MODEL_TARGET_DIR}/MLmodel" ]] || [[ ! -f "${MODEL_TARGET_DIR}/mode
   exit 1
 fi
 
-echo "[4/6] Building Docker image..."
+echo "[5/6] Building Docker image..."
 docker build -t "$IMAGE_NAME" .
 
-echo "[5/6] Restarting container..."
+echo "[6/6] Restarting container..."
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
   "$IMAGE_NAME"
-
-echo "[6/6] Deployment complete."
+echo "Deployment complete."
 echo "Health check URL: http://localhost:${HOST_PORT}/api/v1/health"
