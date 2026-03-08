@@ -33,6 +33,3 @@ echo "Starting MLflow with command:"
 echo "  $MLFLOW_CMD"
 
 exec bash -lc "$MLFLOW_CMD"
-MLFLOW_CORS_ORIGINS="http://localhost:8050,http://50.19.63.113:8050" \
-MLFLOW_ALLOWED_HOSTS="localhost:8050,50.19.63.113:8050" \
-bash scripts/run_mlflow.sh
