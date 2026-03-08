@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from app import __version__, schemas
 from app.config import settings
-from app.utils.model_loader import make_prediction, model_version
+from app.utils.model_loader import make_prediction, model_source, model_version
 from app.utils.preprocessing import normalize_input_columns, prepare_model_input
 
 api_router = APIRouter()
@@ -42,7 +42,10 @@ def health() -> dict:
     Root Get
     """
     health = schemas.Health(
-        name=settings.PROJECT_NAME, api_version=__version__, model_version=model_version
+        name=settings.PROJECT_NAME,
+        api_version=__version__,
+        model_version=model_version,
+        model_source=model_source,
     )
 
     return health.dict()
