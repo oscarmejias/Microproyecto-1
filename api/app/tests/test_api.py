@@ -45,6 +45,40 @@ def _valid_csv_content() -> str:
     )
 
 
+def test_feature_importance_returns_json(
+    client: TestClient, monkeypatch, tmp_path
+) -> None:
+    expected = [
+        {
+            "feature": "efficiency_ratio",
+            "importance": 0.26,
+            "feature_formatted": "Efficiency Ratio",
+        }
+    ]
+    feature_importance_file = tmp_path / "feature_importance.json"
+    feature_importance_file.write_text(json.dumps(expected), encoding="utf-8")
+    monkeypatch.setattr("app.api.FEATURE_IMPORTANCE_PATH", feature_importance_file)
+
+    response = client.get("/api/v1/feature-importance")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert isinstance(body, list)
+    assert len(body) == 1
+    assert set(body[0].keys()) == {"feature", "importance", "feature_formatted"}
+    assert body == expected
+
+
+def test_feature_importance_returns_404_when_file_missing(
+    client: TestClient, monkeypatch, tmp_path
+) -> None:
+    missing_file = tmp_path / "missing_feature_importance.json"
+    monkeypatch.setattr("app.api.FEATURE_IMPORTANCE_PATH", missing_file)
+
+    response = client.get("/api/v1/feature-importance")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "feature_importance.json not found"
+
+
 def test_predict_success_returns_prediction_results(
     client: TestClient, monkeypatch
 ) -> None:

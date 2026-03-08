@@ -35,6 +35,7 @@ __pycache__/
 mlruns/
 *.db
 /prod_model
+/dropout_model_artifact/model/
 
 # Frontend (Node / Vite / Supabase)
 frontend/node_modules/

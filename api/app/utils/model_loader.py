@@ -6,7 +6,27 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 
-MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
+LOCAL_MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
+
+
+def _resolve_model_dir() -> tuple[Path, str]:
+    """
+    Prefer model files packaged in the installed wheel.
+    Fallback to local app/model for local development compatibility.
+    """
+    try:
+        from dropout_model_artifact import get_model_dir
+
+        wheel_model_dir = Path(get_model_dir())
+        if wheel_model_dir.exists():
+            return wheel_model_dir, "wheel"
+    except Exception:
+        pass
+
+    return LOCAL_MODEL_DIR, "local"
+
+
+MODEL_DIR, model_source = _resolve_model_dir()
 MLMODEL_PATH = MODEL_DIR / "MLmodel"
 MODEL_ARTIFACT_PATH = MODEL_DIR / "model.ubj"
 
