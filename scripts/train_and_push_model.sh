@@ -58,7 +58,14 @@ fi
 require_cmd dvc
 
 echo "[3/10] Pulling tracked data/artifacts with DVC..."
-dvc pull
+if [[ "${SKIP_DVC_PULL:-0}" == "1" ]]; then
+  echo "SKIP_DVC_PULL=1 -> skipping dvc pull"
+else
+  if ! dvc pull; then
+    echo "WARNING: dvc pull failed. Continuing with local workspace state." >&2
+    echo "Hint: set SKIP_DVC_PULL=1 to skip this step explicitly." >&2
+  fi
+fi
 
 echo "[4/10] Training models..."
 python -m src.train
