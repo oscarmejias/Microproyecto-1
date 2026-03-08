@@ -8,6 +8,7 @@ WORKDIR /opt/dropout-api
 
 # Instalar dependencias
 ADD ./api /opt/dropout-api/
+ADD ./feature_importance.json /opt/dropout-api/app/feature_importance.json
 RUN pip install --upgrade pip
 RUN pip install -r /opt/dropout-api/requirements.txt \
     && pip install "dvc[s3]"

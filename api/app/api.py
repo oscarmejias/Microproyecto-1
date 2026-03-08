@@ -1,5 +1,6 @@
 import io
 import json
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -14,6 +15,7 @@ from app.utils.model_loader import make_prediction, model_version
 from app.utils.preprocessing import normalize_input_columns, prepare_model_input
 
 api_router = APIRouter()
+FEATURE_IMPORTANCE_PATH = Path(__file__).resolve().parent / "feature_importance.json"
 
 CSV_STUDENT_INFO_FIELDS = ("student_id", "name")
 CSV_ACADEMIC_CONTEXT_FIELDS = ("semester", "batch_id", "course")
@@ -44,6 +46,27 @@ def health() -> dict:
     )
 
     return health.dict()
+
+
+@api_router.get("/feature-importance", status_code=200)
+def feature_importance() -> Any:
+    """
+    Returns static feature importance scores used by clients.
+    """
+    if not FEATURE_IMPORTANCE_PATH.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="feature_importance.json not found",
+        )
+
+    try:
+        return json.loads(FEATURE_IMPORTANCE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        logger.warning(f"feature_importance.json is invalid: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="feature_importance.json is invalid",
+        ) from exc
 
 # Ruta para realizar las predicciones
 @api_router.post("/predict", response_model=schemas.PredictionResults, status_code=200)

@@ -39,6 +39,49 @@ Dado que los datos están versionados en DVC, debes ejecutar el siguiente comand
 dvc pull
 ```
 
+## 🚀 Flujo EC2 (wheel + DVC + Docker)
+
+Este flujo asume que ya tienes credenciales AWS válidas en la instancia (por rol de instancia o variables de entorno).
+
+### Prerrequisitos
+```bash
+python -m pip install -r requirements.txt
+python -m pip install "dvc[s3]" build
+docker --version
+dvc remote list
+```
+
+### 1) Entrenar, exportar, construir wheel y subir artefactos a DVC
+```bash
+bash scripts/train_and_push_model.sh
+```
+
+Este script:
+- entrena el modelo,
+- exporta el mejor modelo a `prod_model/`,
+- construye un wheel instalable con `modelo_final` embebido,
+- versiona `prod_model` y el wheel con DVC,
+- hace `dvc push` al remoto S3.
+
+### 2) Descargar wheel, instalar modelo y desplegar Docker
+```bash
+bash scripts/pull_model_and_run_docker.sh
+```
+
+Variables opcionales para el script 2:
+```bash
+WHEEL_PATH=artifacts/wheels/dropout_model_artifact.whl
+HOST_PORT=8001
+CONTAINER_PORT=8080
+IMAGE_NAME=dropout-api:latest
+CONTAINER_NAME=dropout-api
+```
+
+### 3) Verificar servicio
+```bash
+curl http://localhost:8001/api/v1/health
+```
+
 ## 🧪 Prototipo del Sistema
 El prototipo funcional se divide en dos módulos estratégicos:
 
