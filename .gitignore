@@ -49,3 +49,4 @@ frontend/.eslintcache
 *.log
 frontend/supabase/.branches
 frontend/supabase/.temp
+mlartifacts/
