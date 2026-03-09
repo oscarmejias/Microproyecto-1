@@ -1,0 +1,82 @@
+[
+    {
+        "feature": "efficiency_ratio",
+        "importance": 0.40000393986701965,
+        "feature_formatted": "Efficiency Ratio"
+    },
+    {
+        "feature": "curricular_units_2nd_sem_approved",
+        "importance": 0.12205370515584946,
+        "feature_formatted": "Curricular Units 2Nd Sem Approved"
+    },
+    {
+        "feature": "total_approved",
+        "importance": 0.08968082070350647,
+        "feature_formatted": "Total Approved"
+    },
+    {
+        "feature": "tuition_fees_up_to_date",
+        "importance": 0.08449418097734451,
+        "feature_formatted": "Tuition Fees Up To Date"
+    },
+    {
+        "feature": "debtor",
+        "importance": 0.051853302866220474,
+        "feature_formatted": "Debtor"
+    },
+    {
+        "feature": "scholarship_holder",
+        "importance": 0.032328881323337555,
+        "feature_formatted": "Scholarship Holder"
+    },
+    {
+        "feature": "gender",
+        "importance": 0.027977166697382927,
+        "feature_formatted": "Gender"
+    },
+    {
+        "feature": "age_at_enrollment",
+        "importance": 0.024723952636122704,
+        "feature_formatted": "Age At Enrollment"
+    },
+    {
+        "feature": "curricular_units_1st_sem_approved",
+        "importance": 0.023889772593975067,
+        "feature_formatted": "Curricular Units 1St Sem Approved"
+    },
+    {
+        "feature": "curricular_units_2nd_sem_enrolled",
+        "importance": 0.023111656308174133,
+        "feature_formatted": "Curricular Units 2Nd Sem Enrolled"
+    },
+    {
+        "feature": "curricular_units_2nd_sem_grade",
+        "importance": 0.02260834164917469,
+        "feature_formatted": "Curricular Units 2Nd Sem Grade"
+    },
+    {
+        "feature": "curricular_units_1st_sem_enrolled",
+        "importance": 0.02189021371304989,
+        "feature_formatted": "Curricular Units 1St Sem Enrolled"
+    },
+    {
+        "feature": "grade_trend",
+        "importance": 0.019422244280576706,
+        "feature_formatted": "Grade Trend"
+    },
+    {
+        "feature": "total_enrolled",
+        "importance": 0.018880752846598625,
+        "feature_formatted": "Total Enrolled"
+    },
+    {
+        "feature": "displaced",
+        "importance": 0.01871557906270027,
+        "feature_formatted": "Displaced"
+    },
+    {
+        "feature": "curricular_units_1st_sem_grade",
+        "importance": 0.018365446478128433,
+        "feature_formatted": "Curricular Units 1St Sem Grade"
+    }
+]
