@@ -51,6 +51,12 @@ docker --version
 dvc remote list
 ```
 
+if needed: 
+- set AWS credentials as env variables:
+   - AWS_ACCESS_KEY_ID
+   - AWS_SECRET_ACCESS_KEY
+   - AWS_SESSION_TOKEN
+
 ### 1) Entrenar, exportar, construir wheel y subir artefactos a DVC
 ```bash
 bash scripts/train_and_push_model.sh

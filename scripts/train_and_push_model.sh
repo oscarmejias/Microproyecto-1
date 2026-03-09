@@ -73,8 +73,8 @@ python -m src.train
 echo "[5/10] Exporting best model to prod_model/..."
 python -m src.export_model
 
-if [[ ! -f "prod_model/MLmodel" ]] || [[ ! -f "prod_model/model.ubj" ]]; then
-  echo "ERROR: prod_model is incomplete. Expected MLmodel and model.ubj" >&2
+if [[ ! -f "prod_model/MLmodel" ]]; then
+  echo "ERROR: prod_model is incomplete. Expected MLmodel" >&2
   exit 1
 fi
 

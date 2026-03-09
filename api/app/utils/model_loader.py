@@ -28,7 +28,6 @@ def _resolve_model_dir() -> tuple[Path, str]:
 
 MODEL_DIR, model_source = _resolve_model_dir()
 MLMODEL_PATH = MODEL_DIR / "MLmodel"
-MODEL_ARTIFACT_PATH = MODEL_DIR / "model.ubj"
 
 
 def _read_mlmodel_value(key: str, default: str = "local-model") -> str:
@@ -47,6 +46,28 @@ def _read_mlmodel_value(key: str, default: str = "local-model") -> str:
     return default
 
 
+def _detect_model_flavor() -> str:
+    """
+    Detect model flavor from MLmodel file to support multiple artifact formats.
+    """
+    if not MLMODEL_PATH.exists():
+        return "unknown"
+
+    try:
+        content = MLMODEL_PATH.read_text(encoding="utf-8")
+    except OSError:
+        return "unknown"
+
+    # Keep detection simple and resilient to indentation/order.
+    if "\nxgboost:" in content:
+        return "xgboost"
+    if "\nsklearn:" in content:
+        return "sklearn"
+    if "\npython_function:" in content:
+        return "pyfunc"
+    return "unknown"
+
+
 def get_model_version() -> str:
     # Prioriza model_id del artefacto exportado para trazabilidad.
     return _read_mlmodel_value("model_id", _read_mlmodel_value("run_id", "local-model"))
@@ -56,24 +77,31 @@ model_version = get_model_version()
 
 
 def _ensure_exported_model_files() -> None:
-    missing = []
     if not MLMODEL_PATH.exists():
-        missing.append(str(MLMODEL_PATH))
-    if not MODEL_ARTIFACT_PATH.exists():
-        missing.append(str(MODEL_ARTIFACT_PATH))
-
-    if missing:
         raise FileNotFoundError(
-            "Missing MLflow exported model files: " + ", ".join(missing)
+            "Missing MLflow exported model files: " + str(MLMODEL_PATH)
         )
 
 
 @lru_cache(maxsize=1)
 def _load_model() -> Any:
     _ensure_exported_model_files()
-    import mlflow.xgboost
+    flavor = _detect_model_flavor()
 
-    return mlflow.xgboost.load_model(str(MODEL_DIR))
+    if flavor == "xgboost":
+        import mlflow.xgboost
+
+        return mlflow.xgboost.load_model(str(MODEL_DIR))
+    if flavor == "sklearn":
+        import mlflow.sklearn
+
+        return mlflow.sklearn.load_model(str(MODEL_DIR))
+    if flavor == "pyfunc":
+        import mlflow.pyfunc
+
+        return mlflow.pyfunc.load_model(str(MODEL_DIR))
+
+    raise ValueError(f"Unsupported MLflow model flavor in MLmodel: {flavor}")
 
 
 def make_prediction(input_data: pd.DataFrame) -> Dict[str, Any]:
