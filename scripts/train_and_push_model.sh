@@ -70,11 +70,11 @@ fi
 echo "[4/10] Training models..."
 python -m src.train
 
-echo "[5/10] Exporting best model to prod_model/..."
+echo "[5/10] Exporting best model to prod_model/modelo_final/..."
 python -m src.export_model
 
-if [[ ! -f "prod_model/MLmodel" ]]; then
-  echo "ERROR: prod_model is incomplete. Expected MLmodel" >&2
+if [[ ! -f "prod_model/modelo_final/MLmodel" ]]; then
+  echo "ERROR: prod_model/modelo_final is incomplete. Expected MLmodel" >&2
   exit 1
 fi
 
@@ -88,7 +88,7 @@ WHEEL_MODEL_DIR="${WHEEL_PACKAGE_NAME}/model"
 echo "[6/10] Preparing wheel source tree..."
 rm -rf "$WHEEL_MODEL_DIR"
 mkdir -p "$WHEEL_MODEL_DIR" "$WHEEL_OUT_DIR"
-cp -R prod_model/. "$WHEEL_MODEL_DIR/"
+cp -R prod_model/modelo_final/. "$WHEEL_MODEL_DIR/"
 
 echo "[7/10] Building wheel..."
 WHEEL_VERSION="$WHEEL_VERSION" python -m build --wheel --outdir "$WHEEL_OUT_DIR" .
