@@ -1,4 +1,5 @@
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict
@@ -58,12 +59,12 @@ def _detect_model_flavor() -> str:
     except OSError:
         return "unknown"
 
-    # Keep detection simple and resilient to indentation/order.
-    if "\nxgboost:" in content:
+    # Detect flavors even when nested/indented under `flavors:`.
+    if re.search(r"(?m)^\s*xgboost\s*:", content):
         return "xgboost"
-    if "\nsklearn:" in content:
+    if re.search(r"(?m)^\s*sklearn\s*:", content):
         return "sklearn"
-    if "\npython_function:" in content:
+    if re.search(r"(?m)^\s*python_function\s*:", content):
         return "pyfunc"
     return "unknown"
 
@@ -127,3 +128,4 @@ def make_prediction(input_data: pd.DataFrame) -> Dict[str, Any]:
             "version": model_version,
             "predictions": None,
         }
+

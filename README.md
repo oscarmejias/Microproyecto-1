@@ -69,10 +69,13 @@ bash scripts/run_mlflow.sh
 
 if needed: 
 - set AWS credentials as env variables:
-   - AWS_ACCESS_KEY_ID
-   - AWS_SECRET_ACCESS_KEY
-   - AWS_SESSION_TOKEN
+   - AWS_ACCESS_KEY_ID=
+   - AWS_SECRET_ACCESS_KEY=
+   - AWS_SESSION_TOKEN=
    
+   o aws configure
+   aws configure set aws_session_token SESSION_TOKEN
+
 ```bash
 bash scripts/train_and_push_model.sh
 ```
