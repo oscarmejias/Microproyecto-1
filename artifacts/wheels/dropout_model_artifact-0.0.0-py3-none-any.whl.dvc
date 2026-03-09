@@ -1,5 +1,5 @@
 outs:
-- md5: 6f6351139d325797afb30396fa5220d9
-  size: 72541
+- md5: 115bf417d4e197ecf3c436a438beb718
+  size: 72048
   hash: md5
   path: dropout_model_artifact-0.0.0-py3-none-any.whl
