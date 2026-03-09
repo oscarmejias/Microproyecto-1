@@ -81,7 +81,8 @@ fi
 WHEEL_VERSION="${WHEEL_VERSION:-0.1.$(date +%Y%m%d%H%M%S)}"
 WHEEL_PACKAGE_NAME="dropout_model_artifact"
 WHEEL_OUT_DIR="artifacts/wheels/dist"
-WHEEL_STABLE_PATH="artifacts/wheels/${WHEEL_PACKAGE_NAME}.whl"
+WHEEL_STABLE_FILENAME="${WHEEL_PACKAGE_NAME}-0.0.0-py3-none-any.whl"
+WHEEL_STABLE_PATH="artifacts/wheels/${WHEEL_STABLE_FILENAME}"
 WHEEL_DVC_PATH="${WHEEL_STABLE_PATH}.dvc"
 WHEEL_MODEL_DIR="${WHEEL_PACKAGE_NAME}/model"
 

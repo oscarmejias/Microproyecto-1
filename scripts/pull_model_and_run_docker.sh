@@ -20,10 +20,10 @@ require_cmd python
 require_cmd dvc
 require_cmd docker
 
-WHEEL_PATH="${WHEEL_PATH:-artifacts/wheels/dropout_model_artifact.whl}"
+WHEEL_PATH="${WHEEL_PATH:-artifacts/wheels/dropout_model_artifact-0.0.0-py3-none-any.whl}"
 WHEEL_DVC_PATH="${WHEEL_DVC_PATH:-${WHEEL_PATH}.dvc}"
 API_WHEEL_DIR="${API_WHEEL_DIR:-api/wheels}"
-API_WHEEL_PATH="${API_WHEEL_PATH:-${API_WHEEL_DIR}/dropout_model_artifact.whl}"
+API_WHEEL_PATH="${API_WHEEL_PATH:-${API_WHEEL_DIR}/dropout_model_artifact-0.0.0-py3-none-any.whl}"
 IMAGE_NAME="${IMAGE_NAME:-dropout-api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-dropout-api}"
 HOST_PORT="${HOST_PORT:-8001}"
