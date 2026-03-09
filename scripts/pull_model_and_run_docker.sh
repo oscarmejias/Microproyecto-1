@@ -4,6 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if [[ -d ".venv" ]]; then
+  # shellcheck disable=SC1091
+  source ".venv/bin/activate"
+fi
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "ERROR: required command not found: $1" >&2
@@ -11,37 +16,44 @@ require_cmd() {
   fi
 }
 
+require_cmd python
+require_cmd dvc
 require_cmd docker
 
-ECR_IMAGE_URI="${ECR_IMAGE_URI:-}"
-AWS_REGION="${AWS_REGION:-us-east-1}"
+WHEEL_PATH="${WHEEL_PATH:-artifacts/wheels/dropout_model_artifact-0.0.0-py3-none-any.whl}"
+WHEEL_DVC_PATH="${WHEEL_DVC_PATH:-${WHEEL_PATH}.dvc}"
+API_WHEEL_DIR="${API_WHEEL_DIR:-api/wheels}"
+API_WHEEL_PATH="${API_WHEEL_PATH:-${API_WHEEL_DIR}/dropout_model_artifact-0.0.0-py3-none-any.whl}"
+IMAGE_NAME="${IMAGE_NAME:-dropout-api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-dropout-api}"
 HOST_PORT="${HOST_PORT:-8001}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 
-if [[ -z "$ECR_IMAGE_URI" ]]; then
-  echo "ERROR: ECR_IMAGE_URI is required." >&2
-  echo "Example: ECR_IMAGE_URI=123456789012.dkr.ecr.us-east-1.amazonaws.com/dropout-api:latest bash scripts/pull_model_and_run_docker.sh" >&2
+echo "[1/6] Pulling wheel artifact from DVC..."
+dvc pull "$WHEEL_DVC_PATH"
+
+if [[ ! -f "$WHEEL_PATH" ]]; then
+  echo "ERROR: wheel not found at $WHEEL_PATH after dvc pull" >&2
   exit 1
 fi
 
-if command -v aws >/dev/null 2>&1; then
-  echo "[1/4] Logging into ECR..."
-  ECR_REGISTRY="$(echo "$ECR_IMAGE_URI" | cut -d/ -f1)"
-  aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-else
-  echo "[1/4] aws CLI not found, skipping ECR login (assuming already authenticated)."
-fi
+echo "[2/6] Installing wheel locally..."
+python -m pip install --upgrade pip
+python -m pip install --force-reinstall "$WHEEL_PATH"
 
-echo "[2/4] Pulling image from ECR..."
-docker pull "$ECR_IMAGE_URI"
+echo "[3/6] Syncing wheel into API build context..."
+mkdir -p "$API_WHEEL_DIR"
+cp "$WHEEL_PATH" "$API_WHEEL_PATH"
 
-echo "[3/4] Restarting container..."
+echo "[4/6] Building Docker image..."
+docker build -t "$IMAGE_NAME" .
+
+echo "[5/6] Restarting container..."
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
-  "$ECR_IMAGE_URI"
+  "$IMAGE_NAME"
 
-echo "[4/4] Deployment complete."
+echo "[6/6] Deployment complete."
 echo "Health check URL: http://localhost:${HOST_PORT}/api/v1/health"

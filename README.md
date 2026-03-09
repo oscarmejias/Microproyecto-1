@@ -53,6 +53,11 @@ dvc remote list
 
 
 ### Correr MLFLow Service
+puede iniciar una session de screen para dejarlo corriendo:
+- screen -S mlflow para crear
+- Ctrl + A + D para salir y dejar la session corriendo en background
+- Screen -r mlflow para entrar
+
 if needed:
 - MLFLOW_PUBLIC_IP
 ```bash
