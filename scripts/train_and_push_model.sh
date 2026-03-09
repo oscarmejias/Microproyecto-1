@@ -85,11 +85,28 @@ WHEEL_STABLE_FILENAME="${WHEEL_PACKAGE_NAME}-0.0.0-py3-none-any.whl"
 WHEEL_STABLE_PATH="artifacts/wheels/${WHEEL_STABLE_FILENAME}"
 WHEEL_DVC_PATH="${WHEEL_STABLE_PATH}.dvc"
 WHEEL_MODEL_DIR="${WHEEL_PACKAGE_NAME}/model"
+WHEEL_INIT_FILE="${WHEEL_PACKAGE_NAME}/__init__.py"
 
 echo "[6/10] Preparing wheel source tree..."
 rm -rf "$WHEEL_MODEL_DIR"
 mkdir -p "$WHEEL_MODEL_DIR" "$WHEEL_OUT_DIR"
 cp -R prod_model/modelo_final/. "$WHEEL_MODEL_DIR/"
+cat > "$WHEEL_INIT_FILE" <<'PY'
+from importlib.resources import files
+
+
+def get_model_dir() -> str:
+    return str(files("dropout_model_artifact").joinpath("model"))
+PY
+
+if [[ ! -f "${WHEEL_MODEL_DIR}/MLmodel" ]]; then
+  echo "ERROR: wheel model folder missing MLmodel at ${WHEEL_MODEL_DIR}/MLmodel" >&2
+  exit 1
+fi
+if [[ ! -f "${WHEEL_MODEL_DIR}/model.pkl" ]] && [[ ! -f "${WHEEL_MODEL_DIR}/model.ubj" ]]; then
+  echo "ERROR: wheel model folder missing model.pkl or model.ubj at ${WHEEL_MODEL_DIR}" >&2
+  exit 1
+fi
 
 echo "[7/10] Building wheel..."
 WHEEL_VERSION="$WHEEL_VERSION" python -m build --wheel --outdir "$WHEEL_OUT_DIR" .
@@ -108,14 +125,30 @@ cp "$BUILT_WHEEL" "$WHEEL_STABLE_PATH"
 echo "Built wheel: $BUILT_WHEEL"
 echo "Stable wheel: $WHEEL_STABLE_PATH"
 
-echo "[8/10] Versioning with DVC..."
+echo "[8/10] Verifying wheel import and model files..."
+python -m pip install --force-reinstall "$BUILT_WHEEL"
+python - <<'PY'
+import os
+from dropout_model_artifact import get_model_dir
+
+model_dir = get_model_dir()
+has_mlmodel = os.path.exists(os.path.join(model_dir, "MLmodel"))
+has_model_bin = os.path.exists(os.path.join(model_dir, "model.pkl")) or os.path.exists(os.path.join(model_dir, "model.ubj"))
+if not has_mlmodel or not has_model_bin:
+    raise SystemExit(
+        f"Wheel validation failed. model_dir={model_dir}, has_mlmodel={has_mlmodel}, has_model_bin={has_model_bin}"
+    )
+print(f"Wheel validation OK. model_dir={model_dir}")
+PY
+
+echo "[9/10] Versioning with DVC..."
 dvc add prod_model
 dvc add "$WHEEL_STABLE_PATH"
 
-echo "[9/10] Pushing DVC artifacts to remote..."
+echo "[10/11] Pushing DVC artifacts to remote..."
 dvc push
 
-echo "[10/10] Done."
+echo "[11/11] Done."
 echo "Tracked artifacts:"
 echo " - prod_model (prod_model.dvc)"
 echo " - wheel ($WHEEL_DVC_PATH)"
