@@ -4,16 +4,19 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-if [[ -d ".venv" ]]; then
-  # shellcheck disable=SC1091
-  source ".venv/bin/activate"
+if [[ ! -d ".venv" ]]; then
+  echo "Creating virtual environment at .venv..."
+  python3 -m venv .venv
 fi
+
+source ".venv/bin/activate"
 
 MLFLOW_VERSION="${MLFLOW_VERSION:-3.10.1}"
 MLFLOW_HOST="${MLFLOW_HOST:-0.0.0.0}"
+MLFLOW_PUBLIC_IP="${MLFLOW_PUBLIC_IP:-54.87.51.85}"
 MLFLOW_PORT="${MLFLOW_PORT:-8001}"
-MLFLOW_ALLOWED_HOSTS="${MLFLOW_ALLOWED_HOSTS:-localhost:8001,50.19.63.113:8001}"
-MLFLOW_CORS_ORIGINS="${MLFLOW_CORS_ORIGINS:-http://localhost:8001,http://50.19.63.113:8001}"
+MLFLOW_ALLOWED_HOSTS="${MLFLOW_ALLOWED_HOSTS:-localhost:8001,MLFLOW_PUBLIC_IP:8001}"
+MLFLOW_CORS_ORIGINS="${MLFLOW_CORS_ORIGINS:-http://localhost:8001,http://MLFLOW_PUBLIC_IP:8001}"
 MLFLOW_BACKEND_STORE_URI="${MLFLOW_BACKEND_STORE_URI:-sqlite:////tmp/mlflow.db}"
 MLFLOW_ARTIFACT_ROOT="${MLFLOW_ARTIFACT_ROOT:-file:/tmp/mlflow_artifacts}"
 
